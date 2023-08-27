@@ -180,6 +180,59 @@ void DenseNeuralNetwork::copy(const DenseNeuralNetwork& dnn){
 
 }
 
+DenseNeuralNetwork::DenseNeuralNetwork(vector<size_t> numOfNodes, long double (*loss)(double,double), long double (*lossGradient)(double,double), vector<long double(*)(double)> activationPerLayer, vector<long double(*)(double)> activationPerLayerGradient): delta(), loss(), weights(), nodes(), biases(),layerTotal(numOfNodes.size()), nodeTotal(), weightTotal(), nodePerLayer(numOfNodes), activationPerLayer(), L(loss), D_L(lossGradient), activation(activationPerLayer), activationDerivatives(activationPerLayerGradient){
+    if (numOfNodes.size() < 2){
+        throw "ERROR: Dense Neural Network should contain atleast 2 layers";
+    }
+
+    srand(time(NULL));
+
+    if (activationPerLayer.size()+1 != numOfNodes.size())
+        throw "ERROR: Activation Layers should have n-1 elements where n is the number of layers in the network";
+    
+
+    //allocate delta for updating 
+    delta = new double*[layerTotal-1]; 
+
+    for (size_t i = layerTotal-1; i > 0; i--)
+        delta[i-1] = new double[nodePerLayer.at(i)]{};
+
+
+    //weights[connected section index][number of node in next layer][number of node in prev layer]
+
+    weights = new double**[numOfNodes.size()-1]; //has n-1 connecting sections
+    for (size_t i = 0; i < numOfNodes.size()-1; i++){
+
+        weights[i] = new double*[numOfNodes.at(i+1)];
+
+        for (size_t j = 0; j < numOfNodes[i+1]; j++){
+            
+            // Prevents oversaturation in the beginning I set each of the weights to have a value in the range of 0 +/- 1/sqrt(number of nodes in receiving layer)
+            weights[i][j] = new double[numOfNodes[i]];
+            for (size_t k = 0; k < numOfNodes[i]; k++){
+                weights[i][j][k] = -1/sqrt(numOfNodes[i+1]) + ((double)rand() / RAND_MAX) * (1/sqrt(numOfNodes[i+1])*2); 
+                weightTotal++;
+            }
+        }
+    }
+
+    // Init nodes && activation functions for each layer (default is ReLU and last is logistic)
+    nodes = new double*[numOfNodes.size()];
+
+    for (size_t i = 0; i < numOfNodes.size(); i++){
+        nodes[i] = new double[numOfNodes[i]]{};
+        nodeTotal += numOfNodes[i];
+    }
+     
+    // Init biases (all to 0)
+    biases = new double[numOfNodes.size()-1]{};
+    for (size_t i = 0; i < numOfNodes.size()-1; i++){
+        biases[i] = -1/sqrt(numOfNodes[i+1]) + ((double)rand() / RAND_MAX) * (1/sqrt(numOfNodes[i+1])*2);
+    }
+
+
+}
+
 
 /**
  * Clear the contents on this DenseNeuralNetwork object (deallocate all malloc memory)
