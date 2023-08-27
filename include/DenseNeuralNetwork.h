@@ -36,6 +36,10 @@ class DenseNeuralNetwork{
     //Constructor
     DenseNeuralNetwork(string loss, vector<size_t> numOfNodes, vector<string> activationPerLayer);
     
+    //Custom Loss and Activation Functions
+    DenseNeuralNetwork(vector<size_t>, long double (*)(double,double), long double (*)(double,double), vector<long double(*)(double)>, vector<long double(*)(double)>);
+    
+
     DenseNeuralNetwork(string filename): delta(), loss(), weights(), nodes(), biases(),layerTotal(), nodeTotal(), weightTotal(), nodePerLayer(), activationPerLayer(), L(), D_L(), activation(), activationDerivatives(){
         load(filename);
     }
